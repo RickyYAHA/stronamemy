@@ -11,5 +11,8 @@
             "email": "kasper.skuratowicz159@wp.pl"
         }
     ],
-    "require": {}
+    "require": {
+        "twig/twig": "^3.5",
+        "steampixel/simple-php-router": "^0.7.1"
+    }
 }
