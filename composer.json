@@ -1,0 +1,15 @@
+{
+    "name": "1161371/stronamemy",
+    "autoload": {
+        "psr-4": {
+            "1161371\\Stronamemy\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "RickyYAHA",
+            "email": "kasper.skuratowicz159@wp.pl"
+        }
+    ],
+    "require": {}
+}
