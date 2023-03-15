@@ -1,0 +1,36 @@
+body {
+    background-color: black;
+    color: white;
+    text-align: center;
+}
+
+.post {
+    border: 1px solid white;
+    width: 50%;
+    padding: 0;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.img {
+    max-width: 100%;
+}
+
+.vote {
+    float: left;
+    margin-left: 1em;
+    margin-top: 0.5em;
+}
+
+.title {
+    margin-left: 30%;
+    margin-right: 30%;
+}
+
+.comment {
+    float: left;
+    margin-left: 1em;
+    margin-top: 0.5em;
+    height: 5em;
+    width: 3em;
+}
