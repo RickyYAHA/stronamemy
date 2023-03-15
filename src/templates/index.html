@@ -1,0 +1,24 @@
+{%include 'header.html'%}
+<h1>Posty</h1>
+<a href="upload">Wgraj mema</a>
+<br><br>
+{% for post in posts %}
+
+<div class='post'>
+    <button type='button' class='comment'>
+        💬
+    </button> 
+    <div class='vote'>
+        <button class='upvote' type='button'>▲</button>
+        <div class='votecounter'>69</div>
+        <button class='downvote' type='button'>▼</button>
+        
+    </div>
+    <div class='title'>
+        <h2>{{ post.getTitle() }}</h2>
+        {{ post.getTimestamp() }}<br>
+    </div>
+<img class='img' src="{{ post.getFilename() }}"><br></div>
+{% endfor %}
+
+{%include 'footer.html'%}

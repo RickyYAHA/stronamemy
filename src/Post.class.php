@@ -1,13 +1,37 @@
+
 <?php
 class Post {
-    private int $id;
-    private string $filename;
-    private string $timestamp;
+    private string $title;
+    private string $imageUrl;
+    private string $timeStamp;
 
-    function __construct(int $i, string $f, string $t) {
-        $this->id = $i;
-        $this->filename = $f;
-        $this->timestamp = $t;
+    function __construct(string $title, string $imageUrl, string $timeStamp) {
+        $this->title = $title;
+        $this->imageUrl = $imageUrl;
+        $this->timeStamp = $timeStamp;
+    }
+
+    public function getFilename() {
+        return $this->imageUrl;
+    }
+
+    public function getTitle() {
+        return $this->title;
+    }
+
+    public function getTimestamp() {
+        return $this->timeStamp;
+    }
+
+    static function get(int $id) : Post {
+        global $db;
+
+        $q = $db->prepare("SELECT * FROM post WHERE id = ?");
+        $q->bind_param('i', $id);
+        $q->execute();
+        $result = $q->get_result();
+        $resultArray = $result->fetch_array();
+        return new Post($resultArray['title'], $resultArray['filename'], $result['timestamp']);
     }
 
     static function getLast() : Post {
@@ -17,46 +41,58 @@ class Post {
         $result = $query->get_result();
         $row = $result->fetch_assoc();
         $p = new Post($row['id'], $row['filename'], $row['timestamp']);
-        return $p; 
+        return $p;
     }
 
     static function getPage(int $pageNumber = 1, int $postsPerPage = 10) : array {
         global $db;
-        $query = $db->prepare("SELECT * FROM post ORDER BY timestamp DESC LIMIT ? OFFSET ?");
-        $offset = ($pageNumber-1)*$postsPerPage;
-        $query->bind_param('ii', $postsPerPage, $offset);
-        $query->execute();
-        $result = $query->get_result();
-        $postsArray = array();
-        while($row = $result->fetch_assoc()) {
-            $post = new Post($row['id'],$row['filename'],$row['timestamp']);
-            array_push($postsArray, $post);
+
+        $q = $db->prepare("SELECT * FROM post ORDER BY timestamp DESC LIMIT ? OFFSET ?");
+        $offset = ($pageNumber -1) * $postsPerPage;
+        $q->bind_param('ii', $postsPerPage, $offset);
+        $q->execute();
+        $result = $q->get_result();
+        $postArray = array();
+        while($row = $result->fetch_array()) {
+            $post = new Post($row['title'], $row['filename'], $row['timestamp']);
+            array_push($postArray, $post);
         }
-        return $postsArray;
+        return $postArray;
     }
 
-    static function upload(string $tempFileName) {
+    static function upload(string $tempFilename, string $title = "") {
         $targetDir = "img/";
-        $imgInfo = getimagesize($tempFileName);
-        if(!is_array($imgInfo)) {
-            die("BŁĄD: Przekazany plik nie jest obrazem!");
-        }
-        $randomNumber = rand(10000, 99999) . hrtime(true);
-        $hash = hash("sha256", $randomNumber);
-        $newFileName = $targetDir . $hash . ".webp";
-        if(file_exists($newFileName)) {
-            die("BŁĄD: Podany plik już istnieje!");
-        }
-        $imageString = file_get_contents($tempFileName);
-        $gdImage = @imagecreatefromstring($imageString);
-        imagewebp($gdImage, $newFileName);
-        global $db;
-        $query = $db->prepare("INSERT INTO post VALUES(NULL, ?, ?)");
-        $dbTimestamp = date("Y-m-d H:i:s"); 
-        $query->bind_param("ss", $dbTimestamp, $newFileName);
-        if(!$query->execute())
-            die("Błąd zapisu do bazy danych");
 
+        $imageInfo = getimagesize($tempFilename);
+            
+        if (!is_array($imageInfo)) {
+            die("BŁĄD: Nieprawidłowy format obrazu");
+        }
+        $randomSeed = rand(10000,99999) . hrtime(true);
+        $hash = hash("sha256", $randomSeed);
+
+        $targetFileName = $targetDir . $hash . ".webp";
+        if(file_exists($targetFileName)) {
+            die("BŁĄD: Plik o tej nazwie już istnieje");
+        }
+
+        $imageString = file_get_contents($tempFilename);
+
+        $gdImage = @imagecreatefromstring($imageString);
+
+        imagewebp($gdImage, $targetFileName);
+
+        global $db;
+
+        $q = "INSERT post (id, timestamp, filename, ip, title) VALUES (NULL, ?, ?, ?, ?)";
+        $preparedQ = $db->prepare($q);
+
+        $date = date('Y-m-d H:i:s');
+        $preparedQ->bind_param('ssss', $date, $targetFileName, $_SERVER['REMOTE_ADDR'], $title);
+        $result = $preparedQ->execute();
+        if (!$result) {
+            die("Błąd bazy danych");
+        }
     }
 }
 
